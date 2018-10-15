@@ -15,7 +15,7 @@ use warnings;
 
 our $VERSION = '2';
 
-use File::Slurp;
+use File::Slurper;
 use Finance::OFX::Tree;
 use HTTP::Date;
 
@@ -124,8 +124,7 @@ sub parse_file
 {
     my $file = shift;
     return undef unless $file;
-#    my $text = do { local(@ARGV, $/) = $file; <> };
-    my $text = read_file($file);
+    my $text = read_text($file);
     return undef unless $text;
     return parse($text);
 }
