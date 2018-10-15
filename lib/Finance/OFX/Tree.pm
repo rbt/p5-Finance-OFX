@@ -25,19 +25,29 @@ sub parse
     my @stack;
     unshift @stack, \@tree;
 
+    my $lastOpenTagname = q{};
+    my $lastTextTagname = q{};
+
     my $p = HTML::Parser->new(
 	start_h	=> [sub
 		    {
 			my $data = shift;
 
 			my @content = ();
+			$lastOpenTagname = $data;
 			push @{$stack[0]}, {name => $data, content => \@content};
 			unshift @stack, \@content;
 		    }, 'tagname'],
 	end_h	=> [sub
 		    {	# An end event unwinds the stack by one level
-			shift(@stack);
-		    }, ''],
+			my $data = shift;
+
+			# Some OFX files opt to close the fields themselves, which was done automatically
+			# within text_h. Skip the close unless the current token matches the stack token.
+			if ($lastTextTagname ne $data) {
+			    shift(@stack);
+			}
+		    }, 'tagname'],
 	text_h	=> [sub
 		    {
 			my $data = shift;
@@ -49,6 +59,8 @@ sub parse
 			    print STDERR "Naked text\n";
 			    return;
 			}
+
+			$lastTextTagname = $lastOpenTagname;
 			shift @stack;	# Unwind the vestigal array reference
 			@{$stack[0]}[-1]->{content} = $data;
 		    }, 'dtext' ]);
