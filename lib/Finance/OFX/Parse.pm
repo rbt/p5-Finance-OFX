@@ -103,6 +103,7 @@ sub parse
 
     # Parse the OFX header block
     $header =~ s/^\s//;				# Strip leading whitespace
+    $header =~ s/:\s+/:/g;          # Strip whitespace following a colon
     my %header = split /[:\n]/, $header;	# Convert to a hash
 
     return undef unless ($header{OFXHEADER} == '100') and ($header{DATA} eq 'OFXSGML');
